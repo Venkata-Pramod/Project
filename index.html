@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Acoustic Machine Health Monitor</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Chart.js for the live frequency spectrum -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+    <div class="app">
+
+        <!-- ================= HEADER ================= -->
+        <header class="topbar">
+
+            <div class="brand">
+                <div class="brand-icon">◉</div>
+
+                <div>
+                    <h1>Acoustic Monitor</h1>
+                    <p>Machine Health Intelligence</p>
+                </div>
+            </div>
+
+            <div class="connection">
+                <span id="connectionDot"></span>
+                <span id="connectionText">CONNECTING...</span>
+            </div>
+
+        </header>
+
+
+        <!-- ================= MAIN ================= -->
+        <main>
+
+            <!-- STATUS -->
+            <section class="hero-card">
+
+                <div>
+                    <p class="label">MACHINE HEALTH</p>
+
+                    <h2 id="machineStatus">
+                        CONNECTING...
+                    </h2>
+
+                    <p id="statusDescription">
+                        Waiting for sensor data...
+                    </p>
+                </div>
+
+                <div class="status-icon" id="statusIcon">
+                    ◉
+                </div>
+
+            </section>
+
+
+            <!-- ================= METRICS ================= -->
+            <section class="metrics">
+
+                <div class="card">
+
+                    <div class="card-header">
+                        <span>Anomaly Score</span>
+                        <span class="small-icon">⚠</span>
+                    </div>
+
+                    <div class="metric-value">
+                        <span id="anomalyScore">0</span>
+                        <span class="unit">%</span>
+                    </div>
+
+                    <div class="progress">
+                        <div id="anomalyBar"></div>
+                    </div>
+
+                    <p class="card-description">
+                        Current acoustic anomaly level
+                    </p>
+
+                </div>
+
+
+                <div class="card">
+
+                    <div class="card-header">
+                        <span>Peak Frequency</span>
+                        <span class="small-icon">〽</span>
+                    </div>
+
+                    <div class="metric-value">
+                        <span id="peakFreq">0</span>
+                        <span class="unit">Hz</span>
+                    </div>
+
+                    <p class="card-description">
+                        Dominant machine vibration frequency
+                    </p>
+
+                </div>
+
+
+                <div class="card">
+
+                    <div class="card-header">
+                        <span>Noise Floor</span>
+                        <span class="small-icon">♬</span>
+                    </div>
+
+                    <div class="metric-value">
+                        <span id="noiseFloor">0</span>
+                    </div>
+
+                    <p class="card-description">
+                        Calibrated ambient noise level
+                    </p>
+
+                </div>
+
+            </section>
+
+
+            <!-- ================= SPECTRUM ================= -->
+            <section class="spectrum-card">
+
+                <div class="section-header">
+
+                    <div>
+                        <p class="label">REAL-TIME ANALYSIS</p>
+                        <h2>Frequency Spectrum</h2>
+                    </div>
+
+                    <div class="live-badge">
+                        <span></span>
+                        LIVE
+                    </div>
+
+                </div>
+
+                <div class="chart-container">
+                    <canvas id="spectrumChart"></canvas>
+                </div>
+
+            </section>
+
+
+            <!-- ================= SYSTEM INFO ================= -->
+            <section class="bottom-grid">
+
+                <div class="info-card">
+
+                    <p class="label">SYSTEM CONFIGURATION</p>
+
+                    <div class="info-row">
+                        <span>Sampling Rate</span>
+                        <strong id="sampleRate">16 kHz</strong>
+                    </div>
+
+                    <div class="info-row">
+                        <span>FFT Size</span>
+                        <strong id="fftSize">512</strong>
+                    </div>
+
+                    <div class="info-row">
+                        <span>Connection</span>
+                        <strong id="connectionStatus">Disconnected</strong>
+                    </div>
+
+                </div>
+
+
+                <div class="calibration-card">
+
+                    <div>
+                        <p class="label">SYSTEM CALIBRATION</p>
+
+                        <h2>Calibrate Sensor</h2>
+
+                        <p>
+                            Make sure the machine is OFF before calibration.
+                        </p>
+                    </div>
+
+                    <button id="calibrateBtn">
+                        ⚙ Calibrate System
+                    </button>
+
+                </div>
+
+            </section>
+
+        </main>
+
+
+        <!-- ================= FOOTER ================= -->
+        <footer>
+            Acoustic Machine Health Monitor
+            <span>•</span>
+            ESP32 Sensor Network
+        </footer>
+
+    </div>
+
+
+    <script src="script.js"></script>
+
+</body>
+</html>
