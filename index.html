@@ -42,6 +42,12 @@
         </div>
 
 
+         <button
+            class="btn btn-primary"
+            id="calibrateBtn">
+            🎯 Calibrate Ambient Noise
+        </button>
+
         <div class="connection-status">
 
             <span
@@ -200,25 +206,6 @@
 
                 <!-- FRICTION ENERGY -->
 
-                <div class="metric-card">
-
-                    <h3>
-                        Friction Energy
-                    </h3>
-
-                    <div class="metric-value">
-
-                        <span id="frictionEnergy">
-                            --
-                        </span>
-
-                    </div>
-
-                    <p class="metric-range">
-                        Live FFT band energy
-                    </p>
-
-                </div>
 
 
 
@@ -265,13 +252,6 @@
             <div class="button-group">
 
 
-                <button
-                    class="btn btn-primary"
-                    id="calibrateBtn">
-
-                    🎯 Calibrate Ambient Noise
-
-                </button>
 
 
                 <button
@@ -379,43 +359,6 @@
             <h2>
                 Anomaly Event Log
             </h2>
-
-
-            <div class="log-controls">
-
-
-                <input
-                    type="text"
-                    id="filterInput"
-                    placeholder="Search events..."
-                    class="filter-input">
-
-
-                <select
-                    id="filterLevel"
-                    class="filter-select">
-
-                    <option value="">
-                        All Events
-                    </option>
-
-                    <option value="healthy">
-                        Healthy
-                    </option>
-
-                    <option value="warning">
-                        Warning
-                    </option>
-
-                    <option value="critical">
-                        Critical
-                    </option>
-
-                </select>
-
-
-            </div>
-
 
             <div class="table-container">
 
