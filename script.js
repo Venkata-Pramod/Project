@@ -1,135 +1,221 @@
-// ======================================================
-// ESP32 CONFIGURATION
-// ======================================================
+// ================================================================
+// ACOUSTIC MACHINE HEALTH MONITOR
+// Browser Dashboard Controller
+// ================================================================
 
-// CHANGE THIS TO YOUR ESP32 IP
 
-const ESP32_IP = "192.168.1.10";
+// ================================================================
+// ESP32 IP
+// ================================================================
+
+const urlParams =
+    new URLSearchParams(
+        window.location.search
+    );
+
+
+const ipFromURL =
+    (
+        urlParams.get("esp32") ||
+        ""
+    ).trim();
+
+
+const savedESP32IP =
+    (
+        localStorage.getItem(
+            "esp32_ip"
+        ) ||
+        ""
+    ).trim();
+
+
+const DEFAULT_ESP32_IP =
+    "10.92.53.66";
+
+
+if (ipFromURL) {
+
+    localStorage.setItem(
+        "esp32_ip",
+        ipFromURL
+    );
+}
+
+
+const ESP32_IP =
+    ipFromURL ||
+    savedESP32IP ||
+    DEFAULT_ESP32_IP;
+
 
 const WS_URL =
     `ws://${ESP32_IP}:8080`;
 
 
-// ======================================================
+const MAX_FREQUENCY_HZ =
+    8000;
+
+
+// ================================================================
 // HTML ELEMENTS
-// ======================================================
+// ================================================================
 
 const connectionDot =
-    document.getElementById("connectionDot");
+    document.getElementById(
+        "connectionDot"
+    );
+
 
 const connectionText =
-    document.getElementById("connectionText");
+    document.getElementById(
+        "connectionText"
+    );
+
 
 const statusBadge =
-    document.getElementById("statusBadge");
+    document.getElementById(
+        "statusBadge"
+    );
+
 
 const statusText =
-    document.getElementById("statusText");
+    document.getElementById(
+        "statusText"
+    );
+
 
 const statusDescription =
     document.getElementById(
         "statusDescription"
     );
 
+
 const peakFrequency =
     document.getElementById(
         "peakFrequency"
     );
 
-const noiseFloor =
+
+const maxFrequency =
     document.getElementById(
-        "noiseFloor"
+        "maxFrequency"
     );
+
 
 const anomalyScore =
     document.getElementById(
         "anomalyScore"
     );
 
+
 const frictionEnergy =
     document.getElementById(
         "frictionEnergy"
     );
+
 
 const uptimeElement =
     document.getElementById(
         "uptime"
     );
 
+
 const sampleRate =
     document.getElementById(
         "sampleRate"
     );
+
 
 const fftSize =
     document.getElementById(
         "fftSize"
     );
 
+
+const debugFrequencyLimit =
+    document.getElementById(
+        "debugFrequencyLimit"
+    );
+
+
 const frictionThreshold =
     document.getElementById(
         "frictionThreshold"
     );
+
 
 const calibrationStatus =
     document.getElementById(
         "calibrationStatus"
     );
 
+
 const lastUpdate =
     document.getElementById(
         "lastUpdate"
     );
+
 
 const wsUrl =
     document.getElementById(
         "wsUrl"
     );
 
+
 const eventLogBody =
     document.getElementById(
         "eventLogBody"
     );
+
 
 const totalEvents =
     document.getElementById(
         "totalEvents"
     );
 
+
 const criticalCount =
     document.getElementById(
         "criticalCount"
     );
+
 
 const filterInput =
     document.getElementById(
         "filterInput"
     );
 
+
 const filterLevel =
     document.getElementById(
         "filterLevel"
     );
+
 
 const calibrateBtn =
     document.getElementById(
         "calibrateBtn"
     );
 
+
 const resetBtn =
     document.getElementById(
         "resetBtn"
     );
+
 
 const exportBtn =
     document.getElementById(
         "exportBtn"
     );
 
+
 const toast =
     document.getElementById(
         "toast"
     );
+
 
 const chartSection =
     document.getElementById(
@@ -137,68 +223,69 @@ const chartSection =
     );
 
 
-// ======================================================
-// VARIABLES
-// ======================================================
-
-let socket = null;
-
-
-// Previous machine state
-
-let previousStatus =
-    "UNKNOWN";
-
-
-// Store all events
-
-let eventLog = [];
-
-
-// Reconnect timer
-
-let reconnectTimer = null;
-
-
-// Toast timer
-
-let toastTimer = null;
-
-
-// Application start time
-
-const applicationStartTime =
-    Date.now();
-
-
-// ======================================================
-// WEBSOCKET URL DISPLAY
-// ======================================================
-
-wsUrl.textContent =
-    WS_URL;
-
-
-// ======================================================
-// CHART
-// ======================================================
-
 const chartCanvas =
     document.getElementById(
         "frequencyChart"
     );
 
 
+// ================================================================
+// VARIABLES
+// ================================================================
+
+let socket =
+    null;
+
+
+let reconnectTimer =
+    null;
+
+
+let reconnectDelay =
+    2000;
+
+
+let connectionGeneration =
+    0;
+
+
+let toastTimer =
+    null;
+
+
+let previousStatus =
+    "UNKNOWN";
+
+
+let eventLog =
+    [];
+
+
+let calibrationButtonTimer =
+    null;
+
+
+const applicationStartTime =
+    Date.now();
+
+
+wsUrl.textContent =
+    WS_URL;
+
+
+// ================================================================
+// CHART
+// ================================================================
+
 const frequencyChart =
     new Chart(
         chartCanvas,
         {
 
-            type: "line",
+            type:
+                "line",
 
             data: {
-
-                labels: [],
 
                 datasets: [
 
@@ -207,42 +294,46 @@ const frequencyChart =
                         label:
                             "Frequency Spectrum",
 
-                        data: [],
+                        data:
+                            [],
 
-                        borderWidth: 2,
+                        borderWidth:
+                            2,
 
-                        pointRadius: 0,
+                        pointRadius:
+                            0,
 
-                        tension: 0.25,
+                        tension:
+                            0.2,
 
-                        fill: true,
+                        fill:
+                            true,
 
                         borderColor:
                             "#3498db",
 
                         backgroundColor:
                             "rgba(52, 152, 219, 0.12)"
-
                     }
-
                 ]
-
             },
 
 
             options: {
 
-                responsive: true,
+                responsive:
+                    true,
 
-                maintainAspectRatio: false,
+                maintainAspectRatio:
+                    false,
 
-                animation: false,
-
+                animation:
+                    false,
 
                 interaction: {
 
-                    intersect: false
-
+                    intersect:
+                        false
                 },
 
 
@@ -250,10 +341,9 @@ const frequencyChart =
 
                     legend: {
 
-                        display: false
-
+                        display:
+                            false
                     }
-
                 },
 
 
@@ -261,58 +351,96 @@ const frequencyChart =
 
                     x: {
 
+                        type:
+                            "linear",
+
+                        min:
+                            0,
+
+                        max:
+                            MAX_FREQUENCY_HZ,
+
                         title: {
 
-                            display: true,
+                            display:
+                                true,
 
                             text:
                                 "Frequency (Hz)"
-
                         },
 
                         ticks: {
 
-                            maxTicksLimit: 12
+                            stepSize:
+                                1000,
 
+                            callback:
+                                function(value) {
+
+                                    return (
+                                        value.toLocaleString()
+                                    );
+                                }
                         }
-
                     },
 
 
                     y: {
 
-                        beginAtZero: true,
+                        beginAtZero:
+                            true,
 
                         title: {
 
-                            display: true,
+                            display:
+                                true,
 
                             text:
                                 "Amplitude"
-
                         }
-
                     }
-
                 }
-
             }
-
         }
     );
 
 
-// ======================================================
+// ================================================================
 // WEBSOCKET CONNECTION
-// ======================================================
+// ================================================================
 
 function connectWebSocket() {
 
 
-    console.log(
-        "Connecting to:",
-        WS_URL
+    // Do not create another connection
+    // if one is already connecting or open.
+
+    if (
+        socket &&
+        (
+            socket.readyState ===
+            WebSocket.CONNECTING ||
+
+            socket.readyState ===
+            WebSocket.OPEN
+        )
+    ) {
+
+        return;
+    }
+
+
+    const generation =
+        ++connectionGeneration;
+
+
+    clearTimeout(
+        reconnectTimer
     );
+
+
+    reconnectTimer =
+        null;
 
 
     connectionText.textContent =
@@ -323,23 +451,48 @@ function connectWebSocket() {
         "status-dot connecting";
 
 
-    socket =
-        new WebSocket(
-            WS_URL
+    let newSocket;
+
+
+    try {
+
+        newSocket =
+            new WebSocket(
+                WS_URL
+            );
+
+    } catch (error) {
+
+        console.error(
+            "WebSocket creation failed:",
+            error
         );
 
+        scheduleReconnect();
 
-    // ==================================================
-    // CONNECTED
-    // ==================================================
-
-    socket.onopen =
-        function () {
+        return;
+    }
 
 
-            console.log(
-                "WebSocket connected!"
-            );
+    socket =
+        newSocket;
+
+
+    newSocket.onopen =
+        function() {
+
+
+            if (
+                generation !==
+                connectionGeneration
+            ) {
+
+                return;
+            }
+
+
+            reconnectDelay =
+                2000;
 
 
             connectionText.textContent =
@@ -354,20 +507,23 @@ function connectWebSocket() {
                 "ESP32 connected successfully.",
                 "success"
             );
-
         };
 
 
-    // ==================================================
-    // MESSAGE
-    // ==================================================
+    newSocket.onmessage =
+        function(event) {
 
-    socket.onmessage =
-        function (event) {
+
+            if (
+                generation !==
+                connectionGeneration
+            ) {
+
+                return;
+            }
 
 
             try {
-
 
                 const data =
                     JSON.parse(
@@ -375,44 +531,63 @@ function connectWebSocket() {
                     );
 
 
-                console.log(
-                    "ESP32 DATA:",
-                    data
-                );
-
-
                 updateDashboard(
                     data
                 );
 
-
-            }
-
-            catch (error) {
-
+            } catch (error) {
 
                 console.error(
                     "Invalid JSON from ESP32:",
                     error
                 );
-
-
             }
-
         };
 
 
-    // ==================================================
-    // CLOSED
-    // ==================================================
-
-    socket.onclose =
-        function () {
+    newSocket.onerror =
+        function(error) {
 
 
-            console.log(
-                "WebSocket disconnected"
+            if (
+                generation !==
+                connectionGeneration
+            ) {
+
+                return;
+            }
+
+
+            console.error(
+                "WebSocket error:",
+                error
             );
+
+
+            connectionText.textContent =
+                "Connection Error";
+
+
+            connectionDot.className =
+                "status-dot disconnected";
+        };
+
+
+    newSocket.onclose =
+        function() {
+
+
+            if (
+                generation !==
+                connectionGeneration
+            ) {
+
+                return;
+            }
+
+
+            socket =
+                null;
 
 
             connectionText.textContent =
@@ -435,56 +610,38 @@ function connectWebSocket() {
                 "Unable to receive data from ESP32.";
 
 
+            previousStatus =
+                "UNKNOWN";
+
+
             scheduleReconnect();
-
         };
-
-
-    // ==================================================
-    // ERROR
-    // ==================================================
-
-    socket.onerror =
-        function (error) {
-
-
-            console.error(
-                "WebSocket error:",
-                error
-            );
-
-
-            connectionText.textContent =
-                "Connection Error";
-
-
-            connectionDot.className =
-                "status-dot disconnected";
-
-        };
-
 }
 
 
-// ======================================================
-// AUTOMATIC RECONNECT
-// ======================================================
+// ================================================================
+// RECONNECT
+// ================================================================
 
 function scheduleReconnect() {
 
 
     if (
-        reconnectTimer !== null
+        reconnectTimer !==
+        null
     ) {
 
         return;
-
     }
+
+
+    const delay =
+        reconnectDelay;
 
 
     reconnectTimer =
         setTimeout(
-            function () {
+            function() {
 
 
                 reconnectTimer =
@@ -494,25 +651,24 @@ function scheduleReconnect() {
                 connectWebSocket();
 
 
-            },
-            3000
-        );
+                reconnectDelay =
+                    Math.min(
+                        reconnectDelay * 1.5,
+                        10000
+                    );
 
+            },
+            delay
+        );
 }
 
 
-// ======================================================
-// UPDATE DASHBOARD
-// ======================================================
+// ================================================================
+// DASHBOARD UPDATE
+// ================================================================
 
-function updateDashboard(
-    data
-) {
+function updateDashboard(data) {
 
-
-    // ==================================================
-    // STATUS
-    // ==================================================
 
     const status =
         String(
@@ -521,20 +677,23 @@ function updateDashboard(
         ).toUpperCase();
 
 
-    // ==================================================
-    // DETECT NEW CRITICAL EVENT
-    // ==================================================
+    // ------------------------------------------------------------
+    // CRITICAL EVENT
+    // ------------------------------------------------------------
 
     if (
-        status === "CRITICAL" &&
-        previousStatus !== "CRITICAL"
-    ) {
 
+        status ===
+            "CRITICAL" &&
+
+        previousStatus !==
+            "CRITICAL"
+
+    ) {
 
         handleCriticalEvent(
             data
         );
-
     }
 
 
@@ -542,185 +701,246 @@ function updateDashboard(
         status;
 
 
-    // ==================================================
-    // UPDATE STATUS UI
-    // ==================================================
+    // ------------------------------------------------------------
+    // STATUS
+    // ------------------------------------------------------------
 
     updateStatus(
         status
     );
 
 
-    // ==================================================
+    // ------------------------------------------------------------
+    // PEAK FREQUENCY
+    // ------------------------------------------------------------
+
+    const frequency =
+        Number(
+            data.peakFreq
+        );
+
+
+    if (
+        Number.isFinite(
+            frequency
+        )
+    ) {
+
+        peakFrequency.textContent =
+            frequency.toFixed(1);
+
+    } else {
+
+        peakFrequency.textContent =
+            "--";
+    }
+
+
+    // ------------------------------------------------------------
     // ANOMALY SCORE
-    // ==================================================
+    // ------------------------------------------------------------
 
     const score =
         Number(
-            data.anomalyScore || 0
+            data.anomalyScore
         );
 
 
     anomalyScore.textContent =
-        score.toFixed(1);
+
+        Number.isFinite(
+            score
+        )
+
+            ? score.toFixed(1)
+
+            : "0.0";
 
 
-    // ==================================================
-    // PEAK FREQUENCY
-    // ==================================================
+    // ------------------------------------------------------------
+    // CALIBRATED FREQUENCY LIMIT
+    // ------------------------------------------------------------
 
-    const frequency =
+    const frequencyLimit =
         Number(
-            data.peakFreq || 0
+            data.frequencyLimit
         );
 
 
-    peakFrequency.textContent =
-        frequency.toFixed(1);
+    const calibrationState =
+        String(
+            data.calibration ||
+            ""
+        ).toLowerCase();
 
 
-    // ==================================================
-    // NOISE FLOOR
-    // ==================================================
+    if (
+        calibrationState ===
+        "running"
+    ) {
 
-    const noise =
-        Number(
-            data.noiseFloor || 0
-        );
+        maxFrequency.textContent =
+            "...";
 
-
-    noiseFloor.textContent =
-        noise.toFixed(1);
+        debugFrequencyLimit.textContent =
+            "Calibrating";
 
 
-    // ==================================================
+    } else if (
+
+        Number.isFinite(
+            frequencyLimit
+        ) &&
+
+        frequencyLimit > 0
+
+    ) {
+
+        maxFrequency.textContent =
+            frequencyLimit.toFixed(1);
+
+        debugFrequencyLimit.textContent =
+            frequencyLimit.toFixed(1);
+
+
+    } else {
+
+        maxFrequency.textContent =
+            "--";
+
+        debugFrequencyLimit.textContent =
+            "Not calibrated";
+    }
+
+
+    // ------------------------------------------------------------
     // FRICTION ENERGY
-    // ==================================================
+    // ------------------------------------------------------------
 
     const energy =
         Number(
-            data.frictionEnergy || 0
+            data.frictionEnergy
         );
 
 
     frictionEnergy.textContent =
-        energy.toFixed(2);
+
+        Number.isFinite(
+            energy
+        )
+
+            ? energy.toFixed(2)
+
+            : "--";
 
 
-    // ==================================================
+    // ------------------------------------------------------------
     // SAMPLE RATE
-    // ==================================================
+    // ------------------------------------------------------------
 
     if (
-        data.sampleRate
+        data.sampleRate !==
+        undefined
     ) {
-
 
         sampleRate.textContent =
             data.sampleRate;
-
     }
 
 
-    // ==================================================
+    // ------------------------------------------------------------
     // FFT SIZE
-    // ==================================================
+    // ------------------------------------------------------------
 
     if (
-        data.fftSize
+        data.fftSize !==
+        undefined
     ) {
-
 
         fftSize.textContent =
             data.fftSize;
-
     }
 
 
-    // ==================================================
+    // ------------------------------------------------------------
     // FRICTION THRESHOLD
-    // ==================================================
+    // ------------------------------------------------------------
 
     if (
         data.frictionThreshold !==
         undefined
     ) {
 
+        const threshold =
+            Number(
+                data.frictionThreshold
+            );
+
 
         frictionThreshold.textContent =
-            data.frictionThreshold;
 
+            Number.isFinite(
+                threshold
+            )
+
+                ? threshold.toFixed(2)
+
+                : "--";
     }
 
 
-    // ==================================================
-    // CALIBRATION STATUS
-    // ==================================================
+    // ------------------------------------------------------------
+    // CALIBRATION
+    // ------------------------------------------------------------
 
     if (
         data.calibration !==
         undefined
     ) {
 
-
         calibrationStatus.textContent =
             data.calibration;
-
     }
 
 
-    // ==================================================
+    // ------------------------------------------------------------
     // LAST UPDATE
-    // ==================================================
-
-    const now =
-        new Date();
-
+    // ------------------------------------------------------------
 
     lastUpdate.textContent =
-        now.toLocaleTimeString();
+        new Date().toLocaleTimeString();
 
 
-    // ==================================================
-    // FREQUENCY SPECTRUM
-    // ==================================================
+    // ------------------------------------------------------------
+    // SPECTRUM
+    // ------------------------------------------------------------
 
     if (
-        data.frequencySpectrum &&
         Array.isArray(
             data.frequencySpectrum
         )
     ) {
-
 
         updateSpectrum(
 
             data.frequencySpectrum,
 
             Number(
-                data.sampleRate ||
-                16000
-            ),
+                data.sampleRate
+            ) || 16000,
 
             status
-
         );
-
     }
-
 }
 
 
-// ======================================================
-// UPDATE STATUS
-// ======================================================
+// ================================================================
+// STATUS
+// ================================================================
 
-function updateStatus(
-    status
-) {
+function updateStatus(status) {
 
-
-    // Remove old classes
 
     statusBadge.classList.remove(
         "healthy",
@@ -729,14 +949,10 @@ function updateStatus(
     );
 
 
-    // ==================================================
-    // HEALTHY
-    // ==================================================
-
     if (
-        status === "HEALTHY"
+        status ===
+        "HEALTHY"
     ) {
-
 
         statusBadge.classList.add(
             "healthy"
@@ -759,17 +975,10 @@ function updateStatus(
             "●";
 
 
-    }
-
-
-    // ==================================================
-    // WARNING
-    // ==================================================
-
-    else if (
-        status === "WARNING"
+    } else if (
+        status ===
+        "WARNING"
     ) {
-
 
         statusBadge.classList.add(
             "warning"
@@ -792,17 +1001,10 @@ function updateStatus(
             "⚠";
 
 
-    }
-
-
-    // ==================================================
-    // CRITICAL
-    // ==================================================
-
-    else if (
-        status === "CRITICAL"
+    } else if (
+        status ===
+        "CRITICAL"
     ) {
-
 
         statusBadge.classList.add(
             "critical"
@@ -825,15 +1027,7 @@ function updateStatus(
             "🚨";
 
 
-    }
-
-
-    // ==================================================
-    // UNKNOWN
-    // ==================================================
-
-    else {
-
+    } else {
 
         statusText.textContent =
             status;
@@ -841,16 +1035,13 @@ function updateStatus(
 
         statusDescription.textContent =
             "Waiting for valid machine status.";
-
-
     }
-
 }
 
 
-// ======================================================
-// UPDATE FREQUENCY SPECTRUM
-// ======================================================
+// ================================================================
+// SPECTRUM
+// ================================================================
 
 function updateSpectrum(
     spectrum,
@@ -859,60 +1050,86 @@ function updateSpectrum(
 ) {
 
 
-    // ==================================================
-    // FFT SIZE
-    // ==================================================
+    if (
+        !Array.isArray(
+            spectrum
+        ) ||
 
-    const calculatedFFTSize =
+        spectrum.length ===
+        0
+    ) {
+
+        return;
+    }
+
+
+    const fftSizeValue =
         spectrum.length * 2;
 
 
-    // ==================================================
-    // FREQUENCY LABELS
-    // ==================================================
-
-    const labels =
+    const points =
         spectrum.map(
-            function (_, index) {
+            function(
+                amplitude,
+                index
+            ) {
 
 
-                return (
+                const frequency =
 
-                    index *
-                    samplingRate /
-                    calculatedFFTSize
+                    (
+                        index *
+                        samplingRate
+                    ) /
+                    fftSizeValue;
 
-                ).toFixed(0);
 
+                return {
+
+                    x:
+                        frequency,
+
+                    y:
+                        Number(
+                            amplitude
+                        ) || 0
+                };
             }
         );
-
-
-    // ==================================================
-    // UPDATE DATA
-    // ==================================================
-
-    frequencyChart.data.labels =
-        labels;
 
 
     frequencyChart
         .data
         .datasets[0]
         .data =
-        spectrum;
+        points;
 
 
-    // ==================================================
-    // GRAPH COLOR
-    // ==================================================
+    // FIXED 0-8000 Hz AXIS
+
+    frequencyChart
+        .options
+        .scales
+        .x
+        .min =
+        0;
+
+
+    frequencyChart
+        .options
+        .scales
+        .x
+        .max =
+        MAX_FREQUENCY_HZ;
+
+
+    // COLOR
 
     if (
-        status === "CRITICAL"
+        status ===
+        "CRITICAL"
     ) {
 
-
-        // RED LINE
 
         frequencyChart
             .data
@@ -921,8 +1138,6 @@ function updateSpectrum(
             "#e74c3c";
 
 
-        // RED AREA
-
         frequencyChart
             .data
             .datasets[0]
@@ -930,18 +1145,13 @@ function updateSpectrum(
             "rgba(231, 76, 60, 0.20)";
 
 
-        // RED GLOW AROUND CARD
-
         chartSection.classList.add(
             "critical"
         );
 
-    }
 
-    else {
+    } else {
 
-
-        // NORMAL BLUE LINE
 
         frequencyChart
             .data
@@ -949,8 +1159,6 @@ function updateSpectrum(
             .borderColor =
             "#3498db";
 
-
-        // NORMAL BLUE AREA
 
         frequencyChart
             .data
@@ -962,122 +1170,70 @@ function updateSpectrum(
         chartSection.classList.remove(
             "critical"
         );
-
     }
 
 
-    // ==================================================
-    // REDRAW
-    // ==================================================
-
-    frequencyChart.update();
-
+    frequencyChart.update(
+        "none"
+    );
 }
 
 
-// ======================================================
-// HANDLE CRITICAL EVENT
-// ======================================================
+// ================================================================
+// CRITICAL EVENT
+// ================================================================
 
-function handleCriticalEvent(
-    data
-) {
+function handleCriticalEvent(data) {
 
-
-    console.log(
-        "🚨 CRITICAL EVENT DETECTED"
-    );
-
-
-    // ==================================================
-    // CREATE EVENT
-    // ==================================================
 
     const now =
         new Date();
 
 
-    const event = {
-
-        timestamp:
-            now.toLocaleString(),
-
-        status:
-            "CRITICAL",
-
-        peakFreq:
-            Number(
-                data.peakFreq || 0
-            ),
-
-        anomalyScore:
-            Number(
-                data.anomalyScore || 0
-            )
-
-    };
-
-
-    // ==================================================
-    // ADD EVENT TO LOG
-    // ==================================================
-
     eventLog.push(
-        event
+        {
+
+            timestamp:
+                now.toLocaleString(),
+
+            status:
+                "CRITICAL",
+
+            peakFreq:
+                Number(
+                    data.peakFreq
+                ) || 0,
+
+            anomalyScore:
+                Number(
+                    data.anomalyScore
+                ) || 0,
+
+            spectralDifference:
+                Number(
+                    data.spectralDifference
+                ) || 0
+        }
     );
 
-
-    // ==================================================
-    // UPDATE TABLE
-    // ==================================================
 
     renderEventLog();
 
 
-    // ==================================================
-    // SHOW ALERT
-    // ==================================================
-
-    showCriticalAlert();
-
-
-    // ==================================================
-    // LOG TO CONSOLE
-    // ==================================================
-
-    console.log(
-        "Critical event logged:",
-        event
-    );
-
-}
-
-
-// ======================================================
-// CRITICAL ALERT
-// ======================================================
-
-function showCriticalAlert() {
-
-
     showToast(
-
-        "🚨 ALERT SENT — Critical machine condition detected. Telegram notification sent.",
-
+        "🚨 CRITICAL — Machine condition detected.",
         "critical"
-
     );
-
 }
 
 
-// ======================================================
+// ================================================================
 // TOAST
-// ======================================================
+// ================================================================
 
 function showToast(
     message,
-    type = ""
+    type
 ) {
 
 
@@ -1091,30 +1247,26 @@ function showToast(
 
 
     toast.className =
-        "toast show " +
-        type;
+        `toast show ${type || ""}`;
 
 
     toastTimer =
         setTimeout(
-            function () {
-
+            function() {
 
                 toast.classList.remove(
                     "show"
                 );
 
-
             },
             5000
         );
-
 }
 
 
-// ======================================================
-// RENDER EVENT LOG
-// ======================================================
+// ================================================================
+// EVENT LOG
+// ================================================================
 
 function renderEventLog() {
 
@@ -1127,60 +1279,61 @@ function renderEventLog() {
 
 
     const level =
-        filterLevel.value;
+        filterLevel
+            .value
+            .toLowerCase();
 
-
-    // ==================================================
-    // FILTER
-    // ==================================================
 
     const filteredEvents =
         eventLog.filter(
-            function (event) {
+            function(event) {
 
 
-                const matchesSearch =
+                const searchMatch =
 
                     event.timestamp
                         .toLowerCase()
-                        .includes(search)
+                        .includes(
+                            search
+                        )
 
                     ||
 
                     event.status
                         .toLowerCase()
-                        .includes(search);
+                        .includes(
+                            search
+                        );
 
 
-                const matchesLevel =
+                const levelMatch =
 
                     level === "" ||
 
                     event.status
                         .toLowerCase() ===
-                        level;
+                    level;
 
 
                 return (
-                    matchesSearch &&
-                    matchesLevel
-                );
 
+                    searchMatch &&
+
+                    levelMatch
+
+                );
             }
         );
 
 
-    // ==================================================
-    // EMPTY TABLE
-    // ==================================================
-
     if (
-        filteredEvents.length === 0
+        filteredEvents.length ===
+        0
     ) {
 
 
-        eventLogBody.innerHTML = `
-
+        eventLogBody.innerHTML =
+            `
             <tr class="empty-row">
 
                 <td colspan="5">
@@ -1190,28 +1343,21 @@ function renderEventLog() {
                 </td>
 
             </tr>
-
-        `;
-
-    }
+            `;
 
 
-    else {
+    } else {
 
 
         eventLogBody.innerHTML =
             "";
 
 
-        // Newest event first
-
         filteredEvents
             .slice()
             .reverse()
             .forEach(
-                function (
-                    event
-                ) {
+                function(event) {
 
 
                     const row =
@@ -1220,23 +1366,20 @@ function renderEventLog() {
                         );
 
 
-                    const statusClass =
-                        event.status
-                            .toLowerCase();
-
-
-                    row.innerHTML = `
-
+                    row.innerHTML =
+                        `
                         <td>
-                            ${event.timestamp}
+                            ${escapeHtml(
+                                event.timestamp
+                            )}
                         </td>
 
                         <td>
 
                             <span
-                                class="status-badge-small ${statusClass}">
+                                class="status-badge-small critical">
 
-                                ${event.status}
+                                CRITICAL
 
                             </span>
 
@@ -1251,137 +1394,98 @@ function renderEventLog() {
                         </td>
 
                         <td>
-
-                            <button
-                                class="delete-btn"
-                                onclick="deleteEvent('${event.timestamp}')">
-
-                                Delete
-
-                            </button>
-
+                            Telegram Alert
                         </td>
-
-                    `;
+                        `;
 
 
                     eventLogBody.appendChild(
                         row
                     );
-
                 }
             );
-
     }
 
-
-    // ==================================================
-    // STATISTICS
-    // ==================================================
 
     totalEvents.textContent =
         eventLog.length;
 
 
-    const criticalEvents =
+    criticalCount.textContent =
         eventLog.filter(
-            function (event) {
+            function(event) {
 
                 return (
                     event.status ===
                     "CRITICAL"
                 );
-
             }
-        );
-
-
-    criticalCount.textContent =
-        criticalEvents.length;
-
+        ).length;
 }
 
 
-// ======================================================
-// DELETE EVENT
-// ======================================================
+// ================================================================
+// ESCAPE HTML
+// ================================================================
 
-function deleteEvent(
-    timestamp
-) {
+function escapeHtml(value) {
 
+    return String(value)
 
-    eventLog =
-        eventLog.filter(
-            function (event) {
+        .replace(
+            /&/g,
+            "&amp;"
+        )
 
-                return (
-                    event.timestamp !==
-                    timestamp
-                );
+        .replace(
+            /</g,
+            "&lt;"
+        )
 
-            }
+        .replace(
+            />/g,
+            "&gt;"
+        )
+
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+
+        .replace(
+            /'/g,
+            "&#039;"
         );
-
-
-    renderEventLog();
-
 }
 
 
-// ======================================================
+// ================================================================
 // RESET LOG
-// ======================================================
+// ================================================================
 
-function resetEventLog() {
+resetBtn.addEventListener(
+    "click",
+    function() {
 
 
-    if (
-        eventLog.length === 0
-    ) {
+        eventLog =
+            [];
+
+
+        renderEventLog();
 
 
         showToast(
-            "Event log is already empty.",
-            "warning"
+            "Event log cleared.",
+            "success"
         );
-
-
-        return;
-
     }
+);
 
 
-    const confirmed =
-        confirm(
-            "Are you sure you want to clear the event log?"
-        );
-
-
-    if (!confirmed) {
-
-        return;
-
-    }
-
-
-    eventLog = [];
-
-
-    renderEventLog();
-
-
-    showToast(
-        "Event log cleared.",
-        "success"
-    );
-
-}
-
-
-// ======================================================
-// FILTER EVENTS
-// ======================================================
+// ================================================================
+// FILTER
+// ================================================================
 
 filterInput.addEventListener(
     "input",
@@ -1395,173 +1499,118 @@ filterLevel.addEventListener(
 );
 
 
-// ======================================================
-// CALIBRATION
-// ======================================================
-
-calibrateBtn.addEventListener(
-    "click",
-    function () {
-
-
-        // ==================================================
-        // CHECK CONNECTION
-        // ==================================================
-
-        if (
-            !socket ||
-            socket.readyState !==
-                WebSocket.OPEN
-        ) {
-
-
-            showToast(
-                "ESP32 is not connected.",
-                "error"
-            );
-
-
-            return;
-
-        }
-
-
-        // ==================================================
-        // COMMAND
-        // ==================================================
-
-        const command = {
-
-            command:
-                "calibrate"
-
-        };
-
-
-        // ==================================================
-        // SEND COMMAND
-        // ==================================================
-
-        socket.send(
-            JSON.stringify(
-                command
-            )
-        );
-
-
-        console.log(
-            "Calibration command sent."
-        );
-
-
-        // ==================================================
-        // BUTTON
-        // ==================================================
-
-        calibrateBtn.disabled =
-            true;
-
-
-        calibrateBtn.innerHTML =
-            "⏳ Calibrating...";
-
-
-        calibrationStatus.textContent =
-            "Running";
-
-
-        showToast(
-            "Calibration started. Keep the motor OFF.",
-            "warning"
-        );
-
-
-        // ==================================================
-        // RESTORE BUTTON
-        // ==================================================
-
-        setTimeout(
-            function () {
-
-
-                calibrateBtn.disabled =
-                    false;
-
-
-                calibrateBtn.innerHTML =
-                    "🎯 Calibrate Ambient Noise";
-
-
-            },
-            3500
-        );
-
-    }
-);
-
-
-// ======================================================
-// EXPORT DATA
-// ======================================================
+// ================================================================
+// EXPORT
+// ================================================================
 
 exportBtn.addEventListener(
     "click",
-    function () {
+    function() {
 
 
         if (
-            eventLog.length === 0
+            eventLog.length ===
+            0
         ) {
 
 
             showToast(
-                "No event data to export.",
+                "There are no events to export.",
                 "warning"
             );
 
 
             return;
-
         }
 
 
-        // ==================================================
-        // CSV HEADER
-        // ==================================================
+        const rows =
+            [
 
-        let csv =
-            "Timestamp,Status,Peak Frequency (Hz),Anomaly Score (%)\n";
+                [
 
+                    "Timestamp",
 
-        // ==================================================
-        // CSV DATA
-        // ==================================================
+                    "Status",
+
+                    "Peak Frequency (Hz)",
+
+                    "Anomaly Score (%)",
+
+                    "Spectral Difference (%)"
+
+                ]
+
+            ];
+
 
         eventLog.forEach(
-            function (event) {
+            function(event) {
 
 
-                csv +=
-                    `"${event.timestamp}",` +
-                    `"${event.status}",` +
-                    `${event.peakFreq.toFixed(2)},` +
-                    `${event.anomalyScore.toFixed(2)}\n`;
+                rows.push(
+                    [
 
+                        event.timestamp,
+
+                        event.status,
+
+                        event.peakFreq.toFixed(
+                            1
+                        ),
+
+                        event.anomalyScore.toFixed(
+                            1
+                        ),
+
+                        event.spectralDifference.toFixed(
+                            1
+                        )
+
+                    ]
+                );
             }
         );
 
 
-        // ==================================================
-        // CREATE FILE
-        // ==================================================
+        const csv =
+            rows
+                .map(
+                    function(row) {
+
+
+                        return row
+                            .map(
+                                function(value) {
+
+
+                                    return (
+
+                                        `"${String(value)
+                                            .replace(
+                                                /"/g,
+                                                '""'
+                                            )}"`
+
+                                    );
+                                }
+                            )
+                            .join(",");
+                    }
+                )
+                .join("\n");
+
 
         const blob =
             new Blob(
+
                 [csv],
+
                 {
                     type:
-                        "text/csv"
+                        "text/csv;charset=utf-8"
                 }
+
             );
 
 
@@ -1585,7 +1634,15 @@ exportBtn.addEventListener(
             "machine_anomaly_log.csv";
 
 
+        document.body.appendChild(
+            link
+        );
+
+
         link.click();
+
+
+        link.remove();
 
 
         URL.revokeObjectURL(
@@ -1597,14 +1654,131 @@ exportBtn.addEventListener(
             "Event data exported.",
             "success"
         );
-
     }
 );
 
 
-// ======================================================
+// ================================================================
+// CALIBRATION
+// ================================================================
+
+calibrateBtn.addEventListener(
+    "click",
+    function() {
+
+
+        if (
+            !socket ||
+
+            socket.readyState !==
+            WebSocket.OPEN
+        ) {
+
+
+            showToast(
+                "ESP32 is not connected.",
+                "error"
+            );
+
+
+            return;
+        }
+
+
+        if (
+            calibrateBtn.disabled
+        ) {
+
+            return;
+        }
+
+
+        try {
+
+            socket.send(
+
+                JSON.stringify(
+                    {
+                        command:
+                            "calibrate"
+                    }
+                )
+
+            );
+
+        } catch (error) {
+
+
+            console.error(
+                "Calibration command failed:",
+                error
+            );
+
+
+            showToast(
+                "Failed to send calibration command.",
+                "error"
+            );
+
+
+            return;
+        }
+
+
+        calibrateBtn.disabled =
+            true;
+
+
+        calibrateBtn.innerHTML =
+            "⏳ Calibrating...";
+
+
+        calibrationStatus.textContent =
+            "Running";
+
+
+        maxFrequency.textContent =
+            "...";
+
+
+        debugFrequencyLimit.textContent =
+            "Calibrating";
+
+
+        showToast(
+            "Calibration started. Keep the machine running normally for 3 seconds.",
+            "warning"
+        );
+
+
+        clearTimeout(
+            calibrationButtonTimer
+        );
+
+
+        calibrationButtonTimer =
+            setTimeout(
+                function() {
+
+
+                    calibrateBtn.disabled =
+                        false;
+
+
+                    calibrateBtn.innerHTML =
+                        "🎯 Recalibrate Machine Frequency";
+
+
+                },
+                4000
+            );
+    }
+);
+
+
+// ================================================================
 // UPTIME
-// ======================================================
+// ================================================================
 
 function updateUptime() {
 
@@ -1616,42 +1790,68 @@ function updateUptime() {
 
     const totalSeconds =
         Math.floor(
-            elapsed / 1000
+            elapsed /
+            1000
         );
 
 
     const hours =
         Math.floor(
-            totalSeconds / 3600
+            totalSeconds /
+            3600
         );
 
 
     const minutes =
         Math.floor(
-            (totalSeconds % 3600) /
+
+            (
+                totalSeconds %
+                3600
+
+            ) /
+
             60
+
         );
 
 
     const seconds =
-        totalSeconds % 60;
+        totalSeconds %
+        60;
 
 
     uptimeElement.textContent =
 
         String(hours)
-            .padStart(2, "0")
+            .padStart(
+                2,
+                "0"
+            )
 
-        + ":" +
+        +
+
+        ":"
+
+        +
 
         String(minutes)
-            .padStart(2, "0")
+            .padStart(
+                2,
+                "0"
+            )
 
-        + ":" +
+        +
+
+        ":"
+
+        +
 
         String(seconds)
-            .padStart(2, "0");
-
+            .padStart(
+                2,
+                "0"
+            );
 }
 
 
@@ -1661,9 +1861,22 @@ setInterval(
 );
 
 
-// ======================================================
-// START
-// ======================================================
+updateUptime();
+
+
+renderEventLog();
+
+
+// ================================================================
+// INITIAL CONNECTION
+// ================================================================
+
+connectWebSocket();
+
+
+// ================================================================
+// CONSOLE
+// ================================================================
 
 console.log(
     "Acoustic Machine Health Monitor started."
@@ -1676,4 +1889,16 @@ console.log(
 );
 
 
-connectWebSocket();
+console.log(
+    "WebSocket watchdog disabled."
+);
+
+
+console.log(
+    "Only one WebSocket connection is allowed at a time."
+);
+
+
+console.log(
+    "Use ?esp32=IP if the ESP32 IP changes."
+);
