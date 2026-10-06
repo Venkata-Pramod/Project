@@ -5,15 +5,21 @@
 
     <meta charset="UTF-8">
 
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0">
 
-    <title>Acoustic Machine Health Monitor</title>
+    <title>
+        Acoustic Machine Health Monitor
+    </title>
 
-    <link rel="stylesheet" href="style.css">
+    <link
+        rel="stylesheet"
+        href="style.css">
 
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    <script
+        src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js">
+    </script>
 
 </head>
 
@@ -42,11 +48,14 @@
         </div>
 
 
-         <button
+        <button
             class="btn btn-primary"
             id="calibrateBtn">
-            🎯 Calibrate Ambient Noise
+
+            🎯 Calibrate Machine Frequency
+
         </button>
+
 
         <div class="connection-status">
 
@@ -66,14 +75,14 @@
 
 
     <!-- ================================================= -->
-    <!-- MAIN DASHBOARD -->
+    <!-- DASHBOARD -->
     <!-- ================================================= -->
 
     <main class="dashboard">
 
 
         <!-- ================================================= -->
-        <!-- STATUS SECTION -->
+        <!-- STATUS -->
         <!-- ================================================= -->
 
         <section class="status-section">
@@ -141,35 +150,35 @@
                     </div>
 
                     <p class="metric-range">
-                        Range: 0 - 16,000 Hz
+                        Current measured peak
                     </p>
 
                 </div>
 
 
 
-                <!-- NOISE FLOOR -->
+                <!-- MAXIMUM FREQUENCY LIMIT -->
 
                 <div class="metric-card">
 
                     <h3>
-                        Ambient Noise Level
+                        Maximum Frequency Limit
                     </h3>
 
                     <div class="metric-value">
 
-                        <span id="noiseFloor">
+                        <span id="maxFrequency">
                             --
                         </span>
 
                         <span class="metric-unit">
-                            dB
+                            Hz
                         </span>
 
                     </div>
 
                     <p class="metric-range">
-                        Calibration Threshold
+                        Machine-specific calibrated limit
                     </p>
 
                 </div>
@@ -197,7 +206,7 @@
                     </div>
 
                     <p class="metric-range">
-                        Confidence Level
+                        Anomaly confidence
                     </p>
 
                 </div>
@@ -206,6 +215,25 @@
 
                 <!-- FRICTION ENERGY -->
 
+                <div class="metric-card">
+
+                    <h3>
+                        Friction Energy
+                    </h3>
+
+                    <div class="metric-value">
+
+                        <span id="frictionEnergy">
+                            --
+                        </span>
+
+                    </div>
+
+                    <p class="metric-range">
+                        Friction band energy
+                    </p>
+
+                </div>
 
 
 
@@ -226,11 +254,10 @@
                     </div>
 
                     <p class="metric-range">
-                        System Running
+                        System running
                     </p>
 
                 </div>
-
 
             </div>
 
@@ -252,8 +279,6 @@
             <div class="button-group">
 
 
-
-
                 <button
                     class="btn btn-secondary"
                     id="resetBtn">
@@ -271,14 +296,14 @@
 
                 </button>
 
-
             </div>
 
 
             <p class="info-text">
 
-                Calibration will sample ambient noise for
-                3 seconds. Ensure motor is OFF.
+                Calibration measures the machine's normal peak
+                frequency for 3 seconds. Keep the machine
+                running normally during calibration.
 
             </p>
 
@@ -294,7 +319,6 @@
             class="chart-section"
             id="chartSection">
 
-
             <h2>
                 Real-Time Frequency Spectrum
             </h2>
@@ -302,7 +326,9 @@
 
             <div class="chart-container">
 
-                <canvas id="frequencyChart"></canvas>
+                <canvas
+                    id="frequencyChart">
+                </canvas>
 
             </div>
 
@@ -312,10 +338,12 @@
 
                 <div class="legend-item">
 
-                    <span class="legend-color healthy"></span>
+                    <span
+                        class="legend-color healthy">
+                    </span>
 
                     <span>
-                        Healthy Band (0-3,000 Hz)
+                        Healthy Band (0 - 3,000 Hz)
                     </span>
 
                 </div>
@@ -323,10 +351,12 @@
 
                 <div class="legend-item">
 
-                    <span class="legend-color warning"></span>
+                    <span
+                        class="legend-color warning">
+                    </span>
 
                     <span>
-                        Friction Band (3,000-8,000 Hz) ⚠️
+                        Friction Band (3,000 - 7,500 Hz) ⚠️
                     </span>
 
                 </div>
@@ -334,14 +364,15 @@
 
                 <div class="legend-item">
 
-                    <span class="legend-color critical"></span>
+                    <span
+                        class="legend-color critical">
+                    </span>
 
                     <span>
-                        Critical Band (8,000+ Hz) 🚨
+                        Critical Status 🚨
                     </span>
 
                 </div>
-
 
             </div>
 
@@ -355,15 +386,48 @@
 
         <section class="log-section">
 
-
             <h2>
                 Anomaly Event Log
             </h2>
 
+
+            <div class="log-controls">
+
+                <input
+                    type="text"
+                    id="filterInput"
+                    class="filter-input"
+                    placeholder="Search events...">
+
+
+                <select
+                    id="filterLevel"
+                    class="filter-select">
+
+                    <option value="">
+                        All Levels
+                    </option>
+
+                    <option value="healthy">
+                        Healthy
+                    </option>
+
+                    <option value="warning">
+                        Warning
+                    </option>
+
+                    <option value="critical">
+                        Critical
+                    </option>
+
+                </select>
+
+            </div>
+
+
             <div class="table-container">
 
                 <table class="event-log-table">
-
 
                     <thead>
 
@@ -396,7 +460,6 @@
 
                     <tbody id="eventLogBody">
 
-
                         <tr class="empty-row">
 
                             <td colspan="5">
@@ -408,9 +471,7 @@
 
                         </tr>
 
-
                     </tbody>
-
 
                 </table>
 
@@ -420,10 +481,13 @@
             <div class="log-stats">
 
                 <p>
+
                     Total Events:
+
                     <strong id="totalEvents">
                         0
                     </strong>
+
                 </p>
 
 
@@ -433,7 +497,7 @@
 
                     <strong
                         id="criticalCount"
-                        style="color: #e74c3c;">
+                        class="critical-number">
 
                         0
 
@@ -442,7 +506,6 @@
                 </p>
 
             </div>
-
 
         </section>
 
@@ -453,7 +516,6 @@
         <!-- ================================================= -->
 
         <section class="debug-section">
-
 
             <h2>
                 Debug Information
@@ -509,6 +571,21 @@
                 <p>
 
                     <strong>
+                        Maximum Frequency Limit:
+                    </strong>
+
+                    <span id="debugFrequencyLimit">
+                        --
+                    </span>
+
+                    Hz
+
+                </p>
+
+
+                <p>
+
+                    <strong>
                         Friction Threshold:
                     </strong>
 
@@ -539,16 +616,14 @@
                     </strong>
 
                     <span id="wsUrl">
-                        ws://192.168.1.10:8080
+                        --
                     </span>
 
                 </p>
 
-
             </div>
 
         </section>
-
 
     </main>
 
@@ -569,7 +644,6 @@
 
     </footer>
 
-
 </div>
 
 
@@ -582,7 +656,6 @@
     id="toast"
     class="toast">
 </div>
-
 
 
 <script src="script.js"></script>
